@@ -9,6 +9,6 @@ namespace DotNetPoc.Services.Host.Repositories
     public interface IStorageRepsitory
     {
         void Configure(string location);
-        Task<bool> copy(string currentLocation);
+        Task<bool> Move(string currentLocation);
     }
 }

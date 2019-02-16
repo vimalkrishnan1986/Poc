@@ -9,6 +9,7 @@ using DotNetPoc.Services.Host.Helpers;
 using DotNetPoc.Services.Host.ExcelReader;
 using System.Data;
 using System.Net;
+using System.IO;
 
 namespace DotNetPoc.Services.Host.BusinessServices
 {
@@ -18,16 +19,16 @@ namespace DotNetPoc.Services.Host.BusinessServices
         private readonly IExcelReader _excelReader;
         const string app_data = "App_Data";
 
-        private string GetTemperotyFileName(string fileName)
+        private string GetTemperotyFileName()
         {
             string extension1 = ".xls";
             string extension2 = ".xlsx";
-
+            string fileName = Path.GetRandomFileName();
             if (!fileName.EndsWith(extension1) && !fileName.EndsWith(extension2))
             {
                 fileName = $"{fileName}{extension2}";
             }
-            return $"{FileHelper.CurrentDirrectory(Assembly.GetExecutingAssembly().CodeBase)}//{app_data}//{fileName}";
+            return $"{app_data}\\{fileName}";
 
         }
 
@@ -40,8 +41,9 @@ namespace DotNetPoc.Services.Host.BusinessServices
 
         public async Task<ExcelUploadResponseModel> Upload(ExcelUploadModel model)
         {
-            string tempFileName = GetTemperotyFileName(model.Name);
+            string tempFileName = GetTemperotyFileName();
             //saving to temprory file;
+            FileHelper.CreateDirectory(app_data);
             FileHelper.WriteToFile(model.Content, tempFileName);
             //performing the validation
             var validationResults = await GetValidationResults(tempFileName);
@@ -49,7 +51,10 @@ namespace DotNetPoc.Services.Host.BusinessServices
             {
                 return validationResults;
             }
-            await _storageRepsitory.copy(tempFileName);
+            if (!await _storageRepsitory.Move(tempFileName))
+            {
+                throw new OperationCanceledException("Could not copy the files");
+            }
 
             return new ExcelUploadResponseModel(null);
         }

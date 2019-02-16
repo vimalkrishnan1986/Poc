@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DotCorePoc.Presentation.UploadService;
+using System.IO;
+using System.Threading;
+
 namespace DotCorePoc.Presentation
 {
     public partial class Form1 : Form
@@ -19,24 +22,46 @@ namespace DotCorePoc.Presentation
 
         private void BrowseButton_Click(object sender, EventArgs e)
         {
+
             OpenFileDialog openFileDialog = new OpenFileDialog()
             {
+                Filter = "Excel Worksheets|*.xlsx",
+                CheckFileExists = true,
+                CheckPathExists = true
             };
 
             DialogResult result = openFileDialog.ShowDialog();
 
             if (result == DialogResult.OK) // Test result.
             {
-                string fileName = openFileDialog.FileName;
+                byte[] files = File.ReadAllBytes(openFileDialog.FileName);
+                Submit(files);
+
             }
         }
 
-        private async Task Submit()
-
+        private void Submit(byte[] files)
         {
-            using (ExcelUploadServicecsClient uploadServicecsClient = new ExcelUploadServicecsClient())
+            try
             {
-                await uploadServicecsClient.UploadAsync(new ExcelUploadModel() { Name = "est", Content = null });
+                using (ExcelUploadServicecsClient uploadServicecsClient = new ExcelUploadServicecsClient())
+                {
+                    var res = uploadServicecsClient.UploadAsync(new ExcelUploadModel() { Name = "est", Content = files }).Result;
+
+                    if (res.HttpStatusCode != StatusCodes.Sucess)
+                    {
+                        string messsages = string.Join(Environment.NewLine, res.ErrorMessages.Select(p =>
+                        string.Concat(p.Row.ToString(), p.ErrorMessagees)));
+                        MessageBox.Show(messsages);
+                        return;
+                    }
+                    MessageBox.Show("Successfully Uploaded");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
     }

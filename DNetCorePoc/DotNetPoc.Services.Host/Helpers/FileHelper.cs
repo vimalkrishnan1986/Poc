@@ -19,5 +19,14 @@ namespace DotNetPoc.Services.Host.Helpers
         {
             return Path.GetFileName(fullPath);
         }
+
+        public static void CreateDirectory(String directoryName)
+        {
+            DirectoryInfo info = new DirectoryInfo(directoryName);
+            if (!info.Exists)
+            {
+                info.Create();
+            }
+        }
     }
 }

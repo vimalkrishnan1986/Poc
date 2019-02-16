@@ -17,10 +17,23 @@ namespace DotNetPoc.Services.Host.Repositories
 
         }
 
-        public async Task<bool> copy(string currentLocation)
+        public async Task<bool> Move(string currentLocation)
         {
             string fileName = FileHelper.GetFileName(currentLocation);
-            return true;
+            try
+            {
+                await Task.Run(() =>
+               {
+                   File.Move(currentLocation, $"{_baseLocation}\\{fileName}");
+
+               });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
         }
     }
 }

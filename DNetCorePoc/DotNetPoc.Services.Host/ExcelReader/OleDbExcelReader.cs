@@ -27,15 +27,22 @@ namespace DotNetPoc.Services.Host.ExcelReader
         public async Task<DataTable> ReadFromExcel(string fullFileName)
         {
             _filePath = fullFileName;
-            using (OleDbConnection connection = new OleDbConnection(_connectionString))
+            try
             {
-                string query = "Select * from [Sheet1$]";
-                using (OleDbDataAdapter ada = new OleDbDataAdapter(query, connection))
+                using (OleDbConnection connection = new OleDbConnection(_connectionString))
                 {
-                    DataTable dt = new DataTable();
-                    ada.Fill(dt);
-                    return await Task.FromResult(dt).ConfigureAwait(false);
+                    string query = "Select * from [Sheet1$]";
+                    using (OleDbDataAdapter ada = new OleDbDataAdapter(query, connection))
+                    {
+                        DataTable dt = new DataTable();
+                        ada.Fill(dt);
+                        return await Task.FromResult(dt).ConfigureAwait(false);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
     }
