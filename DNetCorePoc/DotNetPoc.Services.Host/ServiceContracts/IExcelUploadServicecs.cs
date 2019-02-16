@@ -13,6 +13,6 @@ namespace DotNetPoc.Services.Host.ServiceContracts
     {
         [OperationContract(Name = "Upload")]
         [FaultContract(typeof(FaultModel))]
-        ExcelUploadResponseModel Upload(ExcelUploadModel model);
+        Task<ExcelUploadResponseModel> Upload(ExcelUploadModel model);
     }
 }
