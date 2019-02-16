@@ -51,7 +51,7 @@ namespace DotCorePoc.Presentation
                     if (res.HttpStatusCode != StatusCodes.Sucess)
                     {
                         string messsages = string.Join(Environment.NewLine, res.ErrorMessages.Select(p =>
-                        string.Concat(p.Row.ToString(), p.ErrorMessagees)));
+                        string.Concat($"Row { p.Row.ToString()} ", string.Join(",", p.ErrorMessagees))));
                         MessageBox.Show(messsages);
                         return;
                     }

@@ -46,9 +46,12 @@ namespace DotNetPoc.Services.Host.BusinessServices
             FileHelper.CreateDirectory(app_data);
             FileHelper.WriteToFile(model.Content, tempFileName);
             //performing the validation
-            var validationResults = await GetValidationResults(tempFileName);
+
+            var dataTable = await _excelReader.ReadFromExcel(tempFileName);
+            var validationResults = ApplyValidation(dataTable);
             if (validationResults.HttpStatusCode != StatusCodes.Sucess)
             {
+                FileHelper.Delete(tempFileName);
                 return validationResults;
             }
             if (!await _storageRepsitory.Move(tempFileName))
@@ -59,9 +62,14 @@ namespace DotNetPoc.Services.Host.BusinessServices
             return new ExcelUploadResponseModel(null);
         }
 
-        private async Task<ExcelUploadResponseModel> GetValidationResults(string fileName)
+
+        /// <summary>
+        /// apply your validations inside the method
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private ExcelUploadResponseModel ApplyValidation(DataTable data)
         {
-            var data = await _excelReader.ReadFromExcel(fileName);
 
             List<ErrorMessageModel> errorMessageModels = new List<ErrorMessageModel>();
 
@@ -81,16 +89,24 @@ namespace DotNetPoc.Services.Host.BusinessServices
 
             foreach (DataRow dataRow in data.Rows)
             {
+                bool isPassed = true;
                 var errorMessageModel = new ErrorMessageModel(row);
 
-                if (dataRow[0].ToString() == "vimal")
+                if (dataRow[0].ToString() != "vimal")
                 {
-                    errorMessageModel.ErrorMessagees.Add("Colum [0] can't have value vimal");
+                    errorMessageModel.ErrorMessagees.Add("Coulm 0 should have value vimal");
+                    isPassed = false;
+                }
+
+                /// contine with other checks over here;
+                row++;
+                if (isPassed)
+                {
+                    continue;
                 }
                 errorMessageModels.Add(errorMessageModel);
-                row++;
-                /// contine with other checks over here;
             }
+
             return new ExcelUploadResponseModel(errorMessageModels);
         }
     }

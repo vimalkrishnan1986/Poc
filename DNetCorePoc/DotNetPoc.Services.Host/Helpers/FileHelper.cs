@@ -28,5 +28,14 @@ namespace DotNetPoc.Services.Host.Helpers
                 info.Create();
             }
         }
+        public static void Delete(string path)
+        {
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            File.Delete(path);
+        }
     }
 }

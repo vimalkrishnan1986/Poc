@@ -31,13 +31,26 @@ namespace DotNetPoc.Services.Host.ExcelReader
             {
                 using (OleDbConnection connection = new OleDbConnection(_connectionString))
                 {
-                    string query = "Select * from [Sheet1$]";
+                    if (connection.State == 0)
+                    {
+                        connection.Open();
+                    }
+
+                    DataTable dataTableSheets = connection.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, null);
+
+                    if (dataTableSheets.Rows.Count == 0)
+                    {
+                        throw new IndexOutOfRangeException("There are no sheets on  the workbook");
+                    }
+                    string tableName = dataTableSheets.Rows[0]["TABLE_NAME"].ToString();
+                    string query = $"Select  * from [{tableName}]";
+                    DataTable dt = new DataTable();
                     using (OleDbDataAdapter ada = new OleDbDataAdapter(query, connection))
                     {
-                        DataTable dt = new DataTable();
                         ada.Fill(dt);
-                        return await Task.FromResult(dt).ConfigureAwait(false);
                     }
+                    connection.Close();
+                    return await Task.FromResult(dt).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
